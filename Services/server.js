@@ -64,13 +64,14 @@ io.on("connection", (socket) => {
   });
 
   socket.on("chatroomMessage", async ({ chatroomId, message }) => {
+    console.log("vaof chatroomMessage", chatroomId, message);
     const user = await User.findOne({ _id: socket.userId });
     const newMessage = new Message({
         chatroom: chatroomId,
         user: socket.userId,
         message,
       });
-      io.to(chatroomId).emit("newMessage", {
+      io.emit("newMessage", {
         message,
         name: user.name,
         userId: socket.userId,

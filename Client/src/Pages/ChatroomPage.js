@@ -2,42 +2,61 @@ import React from "react";
 import { useParams } from "react-router-dom";
 
 const ChatroomPage = (props) => {
-  console.log("props", props);
   let socket = props.socket;
   let params = useParams();
   const chatroomId = params.id;
-  console.log("params", params);
 
   const [messages, setMessages] = React.useState([]);
+  const [userId, setUserId] = React.useState("");
   const messageRef = React.useRef();
+
+  console.log(userId);
 
   const sendMessage = () => {
     if (socket) {
-      socket.emit("chatroomMessage", {
-        chatroomId: chatroomId,
-        message: messageRef.current.value,
-      });
+      if (messageRef.current.value) {
+        socket.emit("chatroomMessage", {
+          chatroomId: chatroomId,
+          message: messageRef.current.value,
+        });
+
+        messageRef.current.value = "";
+      }
     }
   };
+
+  React.useEffect(() => {
+    const token = localStorage.getItem("CC_Token");
+    if (token) {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      setUserId(payload.id);
+    }
+    if (socket) {
+      socket.on("newMessage", (message) => {
+        console.log("Lawngs nghe swj kien");
+        const newMessages = [...messages, message];
+        setMessages(newMessages);
+      });
+    }
+    //eslint-disable-next-line
+  }, [messages]);
 
   React.useEffect(() => {
     if (socket) {
       socket.emit("joinRoom", {
         chatroomId,
       });
-
-      socket.on("newMessage", ({ message, userId, name }) => {
-        setMessages(...messages, message);
-      });
     }
 
     return () => {
+      //Component Unmount
       if (socket) {
         socket.emit("leaveRoom", {
           chatroomId,
         });
       }
     };
+    //eslint-disable-next-line
   }, []);
 
   return (
@@ -46,8 +65,8 @@ const ChatroomPage = (props) => {
         <div className="cardHeader">Chatroom Name</div>
 
         <div className="chatroomContent">
-          {messages.map((message) => (
-            <div key={chatroomId} className="message">
+          {messages.map((message, i) => (
+            <div key={i} className="message">
               <span className="otherMessage">{message.name}:</span>{" "}
               {message.message}
             </div>
