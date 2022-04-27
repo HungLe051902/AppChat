@@ -10,8 +10,6 @@ const ChatroomPage = (props) => {
   const [userId, setUserId] = React.useState("");
   const messageRef = React.useRef();
 
-  console.log(userId);
-
   const sendMessage = () => {
     if (socket) {
       if (messageRef.current.value) {
@@ -67,7 +65,7 @@ const ChatroomPage = (props) => {
         <div className="chatroomContent">
           {messages.map((message, i) => (
             <div key={i} className="message">
-              <span className="otherMessage">{message.name}:</span>{" "}
+              <span className={userId === message.userId ? "ownMessage" : "otherMessage"}>{message.name}:</span>{" "}
               {message.message}
             </div>
           ))}
